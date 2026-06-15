@@ -6,6 +6,8 @@ import type {
   Attendance,
   CreateEventInput,
   UpdateEventInput,
+  CreateMemberInput,
+  UpdateMemberInput,
   UpsertAttendanceInput,
 } from '@minton/types'
 import { getAdminToken } from './auth'
@@ -74,6 +76,24 @@ export const api = {
     }),
   deleteEvent: (id: string) =>
     http<void>(`/events/${id}`, {
+      method: 'DELETE',
+      headers: adminHeaders(),
+    }),
+
+  createMember: (input: CreateMemberInput) =>
+    http<Member>('/members', {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: adminHeaders(),
+    }),
+  updateMember: (id: string, input: UpdateMemberInput) =>
+    http<Member>(`/members/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+      headers: adminHeaders(),
+    }),
+  deleteMember: (id: string) =>
+    http<void>(`/members/${id}`, {
       method: 'DELETE',
       headers: adminHeaders(),
     }),

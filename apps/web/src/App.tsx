@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
-import { Settings } from 'lucide-react'
+import { Settings, Users } from 'lucide-react'
 import { EventListPage } from '@/pages/EventListPage'
 import { EventDetailPage } from '@/pages/EventDetailPage'
 import { NewEventPage } from '@/pages/NewEventPage'
 import { EditEventPage } from '@/pages/EditEventPage'
+import { MembersPage } from '@/pages/MembersPage'
+import { NewMemberPage } from '@/pages/NewMemberPage'
+import { EditMemberPage } from '@/pages/EditMemberPage'
 import { AdminTokenField } from '@/components/AdminTokenField'
 import { useAdminToken } from '@/hooks/useAdminToken'
 import { Button } from '@/components/ui/button'
@@ -23,14 +26,23 @@ function App() {
             </Link>
             <p className="text-xs text-muted-foreground">バドミントン出欠管理</p>
           </div>
-          <Button
-            variant={token ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setOpen((o) => !o)}
-          >
-            <Settings />
-            {token ? '管理者' : 'ゲスト'}
-          </Button>
+          <div className="flex items-center gap-1">
+            {token && (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/members">
+                  <Users /> メンバー
+                </Link>
+              </Button>
+            )}
+            <Button
+              variant={token ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setOpen((o) => !o)}
+            >
+              <Settings />
+              {token ? '管理者' : 'ゲスト'}
+            </Button>
+          </div>
         </div>
         {open && (
           <div className="mt-3">
@@ -44,6 +56,9 @@ function App() {
           <Route path="/events/new" element={<NewEventPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/:id/edit" element={<EditEventPage />} />
+          <Route path="/members" element={<MembersPage />} />
+          <Route path="/members/new" element={<NewMemberPage />} />
+          <Route path="/members/:id/edit" element={<EditMemberPage />} />
         </Routes>
       </main>
     </div>
