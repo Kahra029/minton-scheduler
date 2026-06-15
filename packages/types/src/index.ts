@@ -143,6 +143,8 @@ export interface EventTemplate {
   end_time: string;
   location: string;
   note: string | null;
+  /** 開催曜日 (0=日 .. 6=土)。未設定は null */
+  weekday: number | null;
   created_at: string;
 }
 
@@ -152,6 +154,7 @@ export interface CreateTemplateInput {
   end_time: string;
   location: string;
   note?: string | null;
+  weekday?: number | null;
 }
 
 export type UpdateTemplateInput = Partial<CreateTemplateInput>;

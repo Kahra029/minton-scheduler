@@ -1,5 +1,6 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import dayjs from 'dayjs'
 import { z } from 'zod'
 import type { CreateEventInput, Event, EventStatus, Recurrence } from '@minton/types'
 import { eventStatusSchema, recurrenceSchema } from '@minton/types'
@@ -72,7 +73,7 @@ export function EventForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initial?.title ?? '',
-      date: initial?.date ?? '',
+      date: initial?.date ?? dayjs().format('YYYY-MM-DD'),
       start_time: initial?.start_time ?? '19:00',
       end_time: initial?.end_time ?? '21:00',
       location: initial?.location ?? '',

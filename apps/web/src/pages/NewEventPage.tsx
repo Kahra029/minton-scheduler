@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import { api } from '@/lib/api'
 import { EventForm } from '@/components/EventForm'
 import { RequireAdmin } from '@/components/RequireAdmin'
@@ -16,6 +17,13 @@ import {
 } from '@/components/ui/select'
 
 const NO_TEMPLATE = '__none__'
+
+/** 今日以降で直近の指定曜日 (0=日..6=土) を YYYY-MM-DD で返す */
+function nextWeekday(weekday: number): string {
+  const today = dayjs()
+  const diff = (weekday - today.day() + 7) % 7
+  return today.add(diff, 'day').format('YYYY-MM-DD')
+}
 
 export function NewEventPage() {
   const navigate = useNavigate()
@@ -36,6 +44,9 @@ export function NewEventPage() {
         end_time: template.end_time,
         location: template.location,
         note: template.note,
+        // 曜日があれば直近のその曜日を日付に
+        date:
+          template.weekday != null ? nextWeekday(template.weekday) : undefined,
       }
     : undefined
 

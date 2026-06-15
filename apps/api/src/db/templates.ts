@@ -38,6 +38,7 @@ export async function createTemplate(
     end_time: input.end_time,
     location: input.location,
     note: input.note ?? null,
+    weekday: input.weekday ?? null,
     created_at: new Date().toISOString(),
   };
   await getDb(d1).insert(eventTemplates).values(template);
@@ -56,6 +57,7 @@ export async function updateTemplate(
     ...current,
     ...input,
     note: input.note !== undefined ? (input.note ?? null) : current.note,
+    weekday: input.weekday !== undefined ? (input.weekday ?? null) : current.weekday,
   };
   await getDb(d1)
     .update(eventTemplates)
@@ -65,6 +67,7 @@ export async function updateTemplate(
       end_time: next.end_time,
       location: next.location,
       note: next.note,
+      weekday: next.weekday,
     })
     .where(eq(eventTemplates.id, id));
   return next;

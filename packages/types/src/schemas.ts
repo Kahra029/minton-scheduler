@@ -41,6 +41,7 @@ export const createTemplateSchema = z.object({
   end_time: z.string().regex(TIME_RE, '終了時刻は HH:MM 形式で指定してください'),
   location: z.string().min(1, '場所は必須です'),
   note: z.string().nullish(),
+  weekday: z.number().int().min(0).max(6).nullish(),
 });
 
 export const updateTemplateSchema = createTemplateSchema.partial();

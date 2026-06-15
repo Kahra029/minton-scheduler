@@ -62,6 +62,7 @@ export const eventTemplates = sqliteTable('event_templates', {
   end_time: text('end_time').notNull(),
   location: text('location').notNull(),
   note: text('note'),
+  weekday: integer('weekday'),
   created_at: text('created_at').notNull(),
 });
 
