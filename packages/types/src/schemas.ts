@@ -28,6 +28,7 @@ export const createEventSchema = z.object({
   note: z.string().nullish(),
   status: eventStatusSchema.optional(),
   recurrence: recurrenceSchema.nullish(),
+  visitor_count: z.number().int().min(0).optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial();

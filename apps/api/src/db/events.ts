@@ -42,6 +42,7 @@ function buildEvent(input: CreateEventInput, date: string, now: string): Event {
     note: input.note ?? null,
     status: input.status ?? 'draft',
     recurrence: input.recurrence ?? null,
+    visitor_count: input.visitor_count ?? 0,
     created_at: now,
     updated_at: now,
   };
@@ -147,6 +148,7 @@ export async function updateEvent(
       note: next.note,
       status: next.status,
       recurrence: next.recurrence ? JSON.stringify(next.recurrence) : null,
+      visitor_count: next.visitor_count,
       updated_at: next.updated_at,
     })
     .where(eq(events.id, id));

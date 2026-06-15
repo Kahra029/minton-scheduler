@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft, Pencil } from 'lucide-react'
+import { ChevronLeft, Minus, Pencil, Plus } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import type { AttendanceStatus, EventDetail } from '@minton/types'
@@ -74,6 +74,24 @@ export function EventDetailPage() {
     },
   })
 
+  // ビジター人数の更新 (admin のみ)。楽観的更新
+  const visitor = useMutation({
+    mutationFn: (count: number) => api.updateEvent(id!, { visitor_count: count }),
+    onMutate: async (count) => {
+      await qc.cancelQueries({ queryKey: ['event', id] })
+      const prev = qc.getQueryData<EventDetail>(['event', id])
+      if (prev) qc.setQueryData(['event', id], { ...prev, visitor_count: count })
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['event', id], ctx.prev)
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['event', id] })
+      qc.invalidateQueries({ queryKey: ['events'] })
+    },
+  })
+
   if (error && !detail) {
     return (
       <p className="py-8 text-center text-destructive">
@@ -136,7 +154,8 @@ export function EventDetailPage() {
           出席
           {detail.summary.present +
             detail.summary.partial +
-            detail.summary.leave_early}
+            detail.summary.leave_early +
+            detail.visitor_count}
           名
         </div>
         <div className="grid flex-1 grid-cols-4">
@@ -157,6 +176,39 @@ export function EventDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* ビジター (メンバー外参加者)。admin は増減、member は閲覧 */}
+      {(isAdmin || detail.visitor_count > 0) && (
+        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
+          <span className="text-sm font-medium">ビジター</span>
+          {isAdmin ? (
+            <div className="flex items-center gap-3">
+              <Button
+                size="icon"
+                variant="outline"
+                aria-label="減らす"
+                disabled={detail.visitor_count <= 0}
+                onClick={() => visitor.mutate(detail.visitor_count - 1)}
+              >
+                <Minus />
+              </Button>
+              <span className="w-6 text-center tabular-nums">
+                {detail.visitor_count}
+              </span>
+              <Button
+                size="icon"
+                variant="outline"
+                aria-label="増やす"
+                onClick={() => visitor.mutate(detail.visitor_count + 1)}
+              >
+                <Plus />
+              </Button>
+            </div>
+          ) : (
+            <span className="text-sm tabular-nums">{detail.visitor_count}名</span>
+          )}
+        </div>
+      )}
 
       {upsert.isError && (
         <p className="text-sm text-destructive">出欠の保存に失敗しました</p>

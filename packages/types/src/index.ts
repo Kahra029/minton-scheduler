@@ -53,6 +53,8 @@ export interface Event {
   status: EventStatus;
   /** 定期開催設定。単発イベントは null */
   recurrence: Recurrence | null;
+  /** ビジター（メンバー外参加者）の人数。admin が任意で設定 */
+  visitor_count: number;
   /** ISO 8601 */
   created_at: string;
   /** ISO 8601 */
@@ -126,6 +128,7 @@ export interface CreateEventInput {
   note?: string | null;
   status?: EventStatus;
   recurrence?: Recurrence | null;
+  visitor_count?: number;
 }
 
 /** イベント更新 (PUT /api/events/:id)。指定したフィールドのみ更新 */

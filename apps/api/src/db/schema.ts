@@ -1,6 +1,7 @@
 import {
   sqliteTable,
   text,
+  integer,
   primaryKey,
   index,
   uniqueIndex,
@@ -24,6 +25,7 @@ export const events = sqliteTable(
       .notNull()
       .default('draft'),
     recurrence: text('recurrence'), // JSON 文字列
+    visitor_count: integer('visitor_count').notNull().default(0),
     created_at: text('created_at').notNull(),
     updated_at: text('updated_at').notNull(),
   },

@@ -1,5 +1,5 @@
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { LogOut, Users } from 'lucide-react'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { Users } from 'lucide-react'
 import { EventListPage } from '@/pages/EventListPage'
 import { EventDetailPage } from '@/pages/EventDetailPage'
 import { NewEventPage } from '@/pages/NewEventPage'
@@ -12,8 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 
 function Header() {
-  const { user, isAdmin, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user, isAdmin } = useAuth()
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 px-4 py-3 backdrop-blur">
@@ -32,18 +31,7 @@ function Header() {
               </Link>
             </Button>
           )}
-          {user ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                await logout()
-                navigate('/')
-              }}
-            >
-              <LogOut /> ログアウト
-            </Button>
-          ) : (
+          {!user && (
             <Button asChild variant="outline" size="sm">
               <Link to="/login">ログイン</Link>
             </Button>
