@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { AppEnv } from '../bindings';
 import { requireAuth, requireAdmin } from '../middleware/auth';
 import { createEventSchema, updateEventSchema } from '../lib/validation';
+import { Errors, parseJson } from '../lib/errors';
 import {
   listEvents,
   getEventDetail,
@@ -21,7 +22,7 @@ events.get('/', requireAuth, async (c) => {
 // GET /api/events/:id — 詳細 + 出欠一覧
 events.get('/:id', requireAuth, async (c) => {
   const detail = await getEventDetail(c.env.DB, c.req.param('id'));
-  if (!detail) return c.json({ error: 'Event not found' }, 404);
+  if (!detail) throw Errors.notFound('イベントが見つかりません');
   return c.json(detail);
 });
 
@@ -32,28 +33,22 @@ events.get('/:id/attendance', requireAuth, async (c) => {
 
 // POST /api/events — admin
 events.post('/', requireAdmin, async (c) => {
-  const parsed = createEventSchema.safeParse(await c.req.json().catch(() => null));
-  if (!parsed.success) {
-    return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
-  }
-  return c.json(await createEvents(c.env.DB, parsed.data), 201);
+  const input = await parseJson(c, createEventSchema);
+  return c.json(await createEvents(c.env.DB, input), 201);
 });
 
 // PUT /api/events/:id — admin
 events.put('/:id', requireAdmin, async (c) => {
-  const parsed = updateEventSchema.safeParse(await c.req.json().catch(() => null));
-  if (!parsed.success) {
-    return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
-  }
-  const updated = await updateEvent(c.env.DB, c.req.param('id'), parsed.data);
-  if (!updated) return c.json({ error: 'Event not found' }, 404);
+  const input = await parseJson(c, updateEventSchema);
+  const updated = await updateEvent(c.env.DB, c.req.param('id'), input);
+  if (!updated) throw Errors.notFound('イベントが見つかりません');
   return c.json(updated);
 });
 
 // DELETE /api/events/:id — admin
 events.delete('/:id', requireAdmin, async (c) => {
   const ok = await deleteEvent(c.env.DB, c.req.param('id'));
-  if (!ok) return c.json({ error: 'Event not found' }, 404);
+  if (!ok) throw Errors.notFound('イベントが見つかりません');
   return c.body(null, 204);
 });
 
