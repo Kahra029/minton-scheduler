@@ -45,6 +45,15 @@ export const createTemplateSchema = z.object({
 
 export const updateTemplateSchema = createTemplateSchema.partial();
 
+// --- settings (集金) ------------------------------------------------------
+
+export const updateFeeSettingsSchema = z.object({
+  fee_present: z.number().int().min(0),
+  fee_partial: z.number().int().min(0),
+  fee_leave_early: z.number().int().min(0),
+  fee_visitor: z.number().int().min(0),
+});
+
 // --- members --------------------------------------------------------------
 
 export const createMemberSchema = z.object({

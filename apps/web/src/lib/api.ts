@@ -12,6 +12,8 @@ import type {
   EventTemplate,
   CreateTemplateInput,
   UpdateTemplateInput,
+  FeeSettings,
+  UpdateFeeSettingsInput,
 } from '@minton/types'
 
 const BASE = '/api'
@@ -103,4 +105,11 @@ export const api = {
     }),
   deleteTemplate: (id: string) =>
     http<void>(`/templates/${id}`, { method: 'DELETE' }),
+
+  getSettings: () => http<FeeSettings>('/settings'),
+  updateSettings: (input: UpdateFeeSettingsInput) =>
+    http<FeeSettings>('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
 }

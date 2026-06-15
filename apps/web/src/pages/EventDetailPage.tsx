@@ -50,6 +50,13 @@ export function EventDetailPage() {
     enabled: !!id,
   })
 
+  // 集金は admin のみ。料金設定を取得して合計を計算する
+  const { data: fees } = useQuery({
+    queryKey: ['settings'],
+    queryFn: api.getSettings,
+    enabled: isAdmin,
+  })
+
   const upsert = useMutation({
     mutationFn: (vars: { member_id: string; status: AttendanceStatus }) =>
       api.upsertAttendance({ event_id: id!, ...vars }),
@@ -207,6 +214,22 @@ export function EventDetailPage() {
           ) : (
             <span className="text-sm tabular-nums">{detail.visitor_count}名</span>
           )}
+        </div>
+      )}
+
+      {/* 集金合計 (admin のみ) */}
+      {isAdmin && fees && (
+        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-sm">
+          <span className="font-medium">集金合計</span>
+          <span className="font-semibold tabular-nums">
+            ¥
+            {(
+              detail.summary.present * fees.fee_present +
+              detail.summary.partial * fees.fee_partial +
+              detail.summary.leave_early * fees.fee_leave_early +
+              detail.visitor_count * fees.fee_visitor
+            ).toLocaleString()}
+          </span>
         </div>
       )}
 

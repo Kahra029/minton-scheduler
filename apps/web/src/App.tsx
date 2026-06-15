@@ -1,5 +1,14 @@
-import { Link, Navigate, Route, Routes } from 'react-router-dom'
-import { CopyPlus, Users } from 'lucide-react'
+import { useState } from 'react'
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import {
+  CalendarDays,
+  CopyPlus,
+  Coins,
+  LogIn,
+  LogOut,
+  Menu,
+  Users,
+} from 'lucide-react'
 import { EventListPage } from '@/pages/EventListPage'
 import { EventDetailPage } from '@/pages/EventDetailPage'
 import { NewEventPage } from '@/pages/NewEventPage'
@@ -8,43 +17,83 @@ import { MembersPage } from '@/pages/MembersPage'
 import { NewMemberPage } from '@/pages/NewMemberPage'
 import { EditMemberPage } from '@/pages/EditMemberPage'
 import { TemplatesPage } from '@/pages/TemplatesPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+
+function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  return (
+    <SheetClose asChild>
+      <Link
+        to={to}
+        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
+      >
+        {icon}
+        {label}
+      </Link>
+    </SheetClose>
+  )
+}
 
 function Header() {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, logout } = useAuth()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 px-4 py-3 backdrop-blur">
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div>
           <Link to="/" className="text-lg font-bold tracking-tight">
             信天翁
           </Link>
           <p className="text-xs text-muted-foreground">出欠管理</p>
         </div>
-        <div className="flex items-center gap-1">
-          {isAdmin && (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/templates">
-                  <CopyPlus /> テンプレ
-                </Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/members">
-                  <Users /> メンバー
-                </Link>
-              </Button>
-            </>
-          )}
-          {!user && (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/login">ログイン</Link>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="メニュー">
+              <Menu />
             </Button>
-          )}
-        </div>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>メニュー</SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-1 px-2">
+              <NavItem to="/" icon={<CalendarDays />} label="イベント一覧" />
+              {isAdmin && (
+                <>
+                  <NavItem to="/templates" icon={<CopyPlus />} label="テンプレート" />
+                  <NavItem to="/members" icon={<Users />} label="メンバー" />
+                  <NavItem to="/settings" icon={<Coins />} label="料金設定" />
+                </>
+              )}
+              {user ? (
+                <button
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  onClick={async () => {
+                    setOpen(false)
+                    await logout()
+                    navigate('/')
+                  }}
+                >
+                  <LogOut /> ログアウト
+                </button>
+              ) : (
+                <NavItem to="/login" icon={<LogIn />} label="ログイン" />
+              )}
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   )
@@ -70,6 +119,7 @@ function App() {
             <Route path="/members/new" element={<NewMemberPage />} />
             <Route path="/members/:id/edit" element={<EditMemberPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         ) : (
           <Routes>

@@ -46,6 +46,15 @@ export const members = sqliteTable(
   (t) => [uniqueIndex('idx_members_email').on(t.email)],
 );
 
+export const settings = sqliteTable('settings', {
+  id: integer('id').primaryKey(),
+  fee_present: integer('fee_present').notNull().default(0),
+  fee_partial: integer('fee_partial').notNull().default(0),
+  fee_leave_early: integer('fee_leave_early').notNull().default(0),
+  fee_visitor: integer('fee_visitor').notNull().default(0),
+  updated_at: text('updated_at').notNull(),
+});
+
 export const eventTemplates = sqliteTable('event_templates', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),

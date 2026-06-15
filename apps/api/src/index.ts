@@ -7,6 +7,7 @@ import events from './routes/events';
 import members from './routes/members';
 import attendance from './routes/attendance';
 import templates from './routes/templates';
+import settings from './routes/settings';
 
 const app = new Hono<AppEnv>();
 
@@ -32,5 +33,6 @@ app.route('/api/events', events);
 app.route('/api/members', members);
 app.route('/api/attendance', attendance);
 app.route('/api/templates', templates);
+app.route('/api/settings', settings);
 
 export default app;

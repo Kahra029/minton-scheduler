@@ -9,6 +9,7 @@ export {
   updateEventSchema,
   createTemplateSchema,
   updateTemplateSchema,
+  updateFeeSettingsSchema,
   createMemberSchema,
   updateMemberSchema,
   upsertAttendanceSchema,
