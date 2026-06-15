@@ -1,10 +1,18 @@
 import type {
+  Event,
   EventListItem,
   EventDetail,
   Member,
   Attendance,
+  CreateEventInput,
+  UpdateEventInput,
   UpsertAttendanceInput,
 } from '@minton/types'
+import { getAdminToken } from './auth'
+
+function adminHeaders(): Record<string, string> {
+  return { 'X-Admin-Token': getAdminToken() }
+}
 
 const BASE = '/api'
 
@@ -48,5 +56,25 @@ export const api = {
     http<Attendance>('/attendance', {
       method: 'PUT',
       body: JSON.stringify(input),
+    }),
+
+  // --- admin 操作 (X-Admin-Token が必要) ---
+  // POST は定期開催で複数生成されうるため作成イベントの配列を返す
+  createEvent: (input: CreateEventInput) =>
+    http<Event[]>('/events', {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: adminHeaders(),
+    }),
+  updateEvent: (id: string, input: UpdateEventInput) =>
+    http<Event>(`/events/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+      headers: adminHeaders(),
+    }),
+  deleteEvent: (id: string) =>
+    http<void>(`/events/${id}`, {
+      method: 'DELETE',
+      headers: adminHeaders(),
     }),
 }

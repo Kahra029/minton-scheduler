@@ -9,6 +9,7 @@ import type {
 } from '@minton/types';
 import { listAttendanceByEvent, summarize } from './attendance';
 import { ulid } from '../lib/id';
+import { expandRecurrence } from '../lib/date';
 
 /** DB の events 行 (recurrence は JSON 文字列で格納) */
 interface EventRow {
@@ -84,15 +85,15 @@ export async function getEventDetail(
   return { ...event, attendance, summary: summarize(attendance) };
 }
 
-export async function createEvent(
-  db: D1Database,
+function buildEvent(
   input: CreateEventInput,
-): Promise<Event> {
-  const now = new Date().toISOString();
-  const event: Event = {
+  date: string,
+  now: string,
+): Event {
+  return {
     id: ulid(),
     title: input.title,
-    date: input.date,
+    date,
     start_time: input.start_time,
     end_time: input.end_time,
     location: input.location,
@@ -102,27 +103,46 @@ export async function createEvent(
     created_at: now,
     updated_at: now,
   };
-  await db
-    .prepare(
-      `INSERT INTO events
-         (id, title, date, start_time, end_time, location, note, status, recurrence, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .bind(
-      event.id,
-      event.title,
-      event.date,
-      event.start_time,
-      event.end_time,
-      event.location,
-      event.note,
-      event.status,
-      event.recurrence ? JSON.stringify(event.recurrence) : null,
-      event.created_at,
-      event.updated_at,
-    )
-    .run();
-  return event;
+}
+
+/**
+ * イベントを作成する。
+ * recurrence が指定された場合は until までの開催日に複製し、まとめて INSERT する。
+ * 戻り値は作成したイベント（日付昇順）。単発作成でも長さ 1 の配列を返す。
+ */
+export async function createEvents(
+  db: D1Database,
+  input: CreateEventInput,
+): Promise<Event[]> {
+  const now = new Date().toISOString();
+  const dates = input.recurrence
+    ? expandRecurrence(input.date, input.recurrence)
+    : [input.date];
+  const events = dates.map((date) => buildEvent(input, date, now));
+
+  const stmt = db.prepare(
+    `INSERT INTO events
+       (id, title, date, start_time, end_time, location, note, status, recurrence, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  await db.batch(
+    events.map((e) =>
+      stmt.bind(
+        e.id,
+        e.title,
+        e.date,
+        e.start_time,
+        e.end_time,
+        e.location,
+        e.note,
+        e.status,
+        e.recurrence ? JSON.stringify(e.recurrence) : null,
+        e.created_at,
+        e.updated_at,
+      ),
+    ),
+  );
+  return events;
 }
 
 export async function updateEvent(

@@ -5,7 +5,7 @@ import { createEventSchema, updateEventSchema } from '../lib/validation';
 import {
   listEvents,
   getEventDetail,
-  createEvent,
+  createEvents,
   updateEvent,
   deleteEvent,
 } from '../db/events';
@@ -36,7 +36,7 @@ events.post('/', adminAuth, async (c) => {
   if (!parsed.success) {
     return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
   }
-  return c.json(await createEvent(c.env.DB, parsed.data), 201);
+  return c.json(await createEvents(c.env.DB, parsed.data), 201);
 });
 
 // PUT /api/events/:id — admin

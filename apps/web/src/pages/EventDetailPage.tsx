@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Pencil } from 'lucide-react'
 import type { AttendanceStatus, EventDetail } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
 import { formatDate, summarizeEntries } from '@/lib/attendance'
@@ -8,6 +8,7 @@ import { AttendanceRow } from '@/components/AttendanceRow'
 import { AttendanceSummaryBadges } from '@/components/AttendanceSummaryBadges'
 import { EventStatusBadge } from '@/components/EventStatusBadge'
 import { Button } from '@/components/ui/button'
+import { useAdminToken } from '@/hooks/useAdminToken'
 
 const PAGE_SIZE = 20
 
@@ -32,6 +33,7 @@ export function EventDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
+  const token = useAdminToken()
 
   useEffect(() => {
     if (!id) return
@@ -85,7 +87,16 @@ export function EventDetailPage() {
       <div className="space-y-1">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-xl font-semibold">{detail.title}</h2>
-          <EventStatusBadge status={detail.status} />
+          <div className="flex shrink-0 items-center gap-2">
+            <EventStatusBadge status={detail.status} />
+            {token && (
+              <Button asChild size="sm" variant="outline">
+                <Link to={`/events/${detail.id}/edit`}>
+                  <Pencil /> 編集
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
           {formatDate(detail.date)} {detail.start_time}–{detail.end_time}
