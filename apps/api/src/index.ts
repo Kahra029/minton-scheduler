@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { AppEnv } from './bindings';
+import auth from './routes/auth';
 import events from './routes/events';
 import members from './routes/members';
 import attendance from './routes/attendance';
@@ -14,6 +15,7 @@ app.use('/api/*', cors());
 app.get('/', (c) => c.text('BadSync API'));
 
 // API ルート (spec 4.3)
+app.route('/api/auth', auth);
 app.route('/api/events', events);
 app.route('/api/members', members);
 app.route('/api/attendance', attendance);

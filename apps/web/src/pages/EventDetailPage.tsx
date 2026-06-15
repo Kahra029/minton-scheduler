@@ -8,7 +8,7 @@ import { AttendanceRow } from '@/components/AttendanceRow'
 import { AttendanceSummaryBadges } from '@/components/AttendanceSummaryBadges'
 import { EventStatusBadge } from '@/components/EventStatusBadge'
 import { Button } from '@/components/ui/button'
-import { useAdminToken } from '@/hooks/useAdminToken'
+import { useAuth } from '@/contexts/AuthContext'
 
 const PAGE_SIZE = 20
 
@@ -33,7 +33,7 @@ export function EventDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
-  const token = useAdminToken()
+  const { user, isAdmin } = useAuth()
 
   useEffect(() => {
     if (!id) return
@@ -89,7 +89,7 @@ export function EventDetailPage() {
           <h2 className="text-xl font-semibold">{detail.title}</h2>
           <div className="flex shrink-0 items-center gap-2">
             <EventStatusBadge status={detail.status} />
-            {token && (
+            {isAdmin && (
               <Button asChild size="sm" variant="outline">
                 <Link to={`/events/${detail.id}/edit`}>
                   <Pencil /> 編集
@@ -120,7 +120,10 @@ export function EventDetailPage() {
             key={entry.member_id}
             memberName={entry.member_name}
             status={entry.status}
-            disabled={savingId === entry.member_id}
+            disabled={
+              savingId === entry.member_id ||
+              !(isAdmin || user?.id === entry.member_id)
+            }
             onChange={(status) => handleChange(entry.member_id, status)}
           />
         ))}

@@ -4,7 +4,7 @@ import { ChevronLeft, Trash2 } from 'lucide-react'
 import type { EventDetail } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
 import { EventForm } from '@/components/EventForm'
-import { AdminGate } from '@/components/AdminGate'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
 
 export function EditEventPage() {
@@ -49,7 +49,7 @@ export function EditEventPage() {
         </Link>
       </Button>
       <h2 className="text-xl font-semibold">イベント編集</h2>
-      <AdminGate>
+      <RequireAdmin>
         <EventForm
           mode="edit"
           initial={event}
@@ -67,7 +67,7 @@ export function EditEventPage() {
         >
           <Trash2 /> このイベントを削除
         </Button>
-      </AdminGate>
+      </RequireAdmin>
     </div>
   )
 }

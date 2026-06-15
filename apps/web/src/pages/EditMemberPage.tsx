@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import type { Member } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
 import { MemberForm } from '@/components/MemberForm'
-import { AdminGate } from '@/components/AdminGate'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
 
 function EditMemberBody({ id }: { id: string }) {
@@ -52,7 +52,7 @@ export function EditMemberPage() {
         </Link>
       </Button>
       <h2 className="text-xl font-semibold">メンバー編集</h2>
-      <AdminGate>{id && <EditMemberBody id={id} />}</AdminGate>
+      <RequireAdmin>{id && <EditMemberBody id={id} />}</RequireAdmin>
     </div>
   )
 }

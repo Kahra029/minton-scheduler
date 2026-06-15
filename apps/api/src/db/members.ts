@@ -1,17 +1,33 @@
-import type { Member, CreateMemberInput, UpdateMemberInput } from '@minton/types';
 import { ulid } from '../lib/id';
+import type { Member, CreateMemberInput, UpdateMemberInput } from '@minton/types';
+
+const COLS = 'id, name, role, email, created_at';
+
+function normEmail(email: string | null | undefined): string | null {
+  return email ? email.toLowerCase() : null;
+}
 
 export async function listMembers(db: D1Database): Promise<Member[]> {
   const { results } = await db
-    .prepare('SELECT id, name, role, created_at FROM members ORDER BY created_at ASC')
+    .prepare(`SELECT ${COLS} FROM members ORDER BY created_at ASC`)
     .all<Member>();
   return results;
 }
 
 export async function getMember(db: D1Database, id: string): Promise<Member | null> {
   return db
-    .prepare('SELECT id, name, role, created_at FROM members WHERE id = ?')
+    .prepare(`SELECT ${COLS} FROM members WHERE id = ?`)
     .bind(id)
+    .first<Member>();
+}
+
+export async function getMemberByEmail(
+  db: D1Database,
+  email: string,
+): Promise<Member | null> {
+  return db
+    .prepare(`SELECT ${COLS} FROM members WHERE email = ?`)
+    .bind(email.toLowerCase())
     .first<Member>();
 }
 
@@ -23,11 +39,14 @@ export async function createMember(
     id: ulid(),
     name: input.name,
     role: input.role ?? 'member',
+    email: normEmail(input.email),
     created_at: new Date().toISOString(),
   };
   await db
-    .prepare('INSERT INTO members (id, name, role, created_at) VALUES (?, ?, ?, ?)')
-    .bind(member.id, member.name, member.role, member.created_at)
+    .prepare(
+      'INSERT INTO members (id, name, role, email, created_at) VALUES (?, ?, ?, ?, ?)',
+    )
+    .bind(member.id, member.name, member.role, member.email, member.created_at)
     .run();
   return member;
 }
@@ -44,10 +63,11 @@ export async function updateMember(
     ...current,
     name: input.name ?? current.name,
     role: input.role ?? current.role,
+    email: input.email !== undefined ? normEmail(input.email) : current.email,
   };
   await db
-    .prepare('UPDATE members SET name = ?, role = ? WHERE id = ?')
-    .bind(next.name, next.role, id)
+    .prepare('UPDATE members SET name = ?, role = ?, email = ? WHERE id = ?')
+    .bind(next.name, next.role, next.email, id)
     .run();
   return next;
 }

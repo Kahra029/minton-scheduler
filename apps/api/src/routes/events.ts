@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../bindings';
-import { adminAuth } from '../middleware/admin';
+import { requireAdmin } from '../middleware/auth';
 import { createEventSchema, updateEventSchema } from '../lib/validation';
 import {
   listEvents,
@@ -31,7 +31,7 @@ events.get('/:id/attendance', async (c) => {
 });
 
 // POST /api/events — admin
-events.post('/', adminAuth, async (c) => {
+events.post('/', requireAdmin, async (c) => {
   const parsed = createEventSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) {
     return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
@@ -40,7 +40,7 @@ events.post('/', adminAuth, async (c) => {
 });
 
 // PUT /api/events/:id — admin
-events.put('/:id', adminAuth, async (c) => {
+events.put('/:id', requireAdmin, async (c) => {
   const parsed = updateEventSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) {
     return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
@@ -51,7 +51,7 @@ events.put('/:id', adminAuth, async (c) => {
 });
 
 // DELETE /api/events/:id — admin
-events.delete('/:id', adminAuth, async (c) => {
+events.delete('/:id', requireAdmin, async (c) => {
   const ok = await deleteEvent(c.env.DB, c.req.param('id'));
   if (!ok) return c.json({ error: 'Event not found' }, 404);
   return c.body(null, 204);

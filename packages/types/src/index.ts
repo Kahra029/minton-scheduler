@@ -61,6 +61,8 @@ export interface Member {
   id: string;
   name: string;
   role: MemberRole;
+  /** ログイン用メールアドレス (v2 認証)。未招待は null */
+  email: string | null;
   /** ISO 8601 */
   created_at: string;
 }
@@ -128,6 +130,7 @@ export type UpdateEventInput = Partial<CreateEventInput>;
 export interface CreateMemberInput {
   name: string;
   role?: MemberRole;
+  email?: string | null;
 }
 
 export type UpdateMemberInput = Partial<CreateMemberInput>;
@@ -137,6 +140,21 @@ export interface UpsertAttendanceInput {
   event_id: string;
   member_id: string;
   status: AttendanceStatus;
+}
+
+// ---------------------------------------------------------------------------
+// 認証 (v2)
+// ---------------------------------------------------------------------------
+
+/** OTP 送信リクエスト (POST /api/auth/request) */
+export interface RequestOtpInput {
+  email: string;
+}
+
+/** OTP 検証リクエスト (POST /api/auth/verify) */
+export interface VerifyOtpInput {
+  email: string;
+  code: string;
 }
 
 // ---------------------------------------------------------------------------

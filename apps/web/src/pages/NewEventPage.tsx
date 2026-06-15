@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { EventForm } from '@/components/EventForm'
-import { AdminGate } from '@/components/AdminGate'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
 
 export function NewEventPage() {
@@ -16,7 +16,7 @@ export function NewEventPage() {
         </Link>
       </Button>
       <h2 className="text-xl font-semibold">イベント作成</h2>
-      <AdminGate>
+      <RequireAdmin>
         <EventForm
           mode="create"
           submitLabel="作成"
@@ -29,7 +29,7 @@ export function NewEventPage() {
             }
           }}
         />
-      </AdminGate>
+      </RequireAdmin>
     </div>
   )
 }

@@ -37,6 +37,7 @@ export const updateEventSchema = createEventSchema.partial();
 export const createMemberSchema = z.object({
   name: z.string().min(1, 'name は必須です'),
   role: memberRoleSchema.optional(),
+  email: z.string().email('メールアドレスの形式が不正です').nullish(),
 });
 
 export const updateMemberSchema = createMemberSchema.partial();
@@ -47,4 +48,15 @@ export const upsertAttendanceSchema = z.object({
   event_id: z.string().min(1),
   member_id: z.string().min(1),
   status: attendanceStatusSchema,
+});
+
+// --- auth -----------------------------------------------------------------
+
+export const requestOtpSchema = z.object({
+  email: z.string().email(),
+});
+
+export const verifyOtpSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/, '6桁の数字コードを入力してください'),
 });

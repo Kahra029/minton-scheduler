@@ -10,11 +10,6 @@ import type {
   UpdateMemberInput,
   UpsertAttendanceInput,
 } from '@minton/types'
-import { getAdminToken } from './auth'
-
-function adminHeaders(): Record<string, string> {
-  return { 'X-Admin-Token': getAdminToken() }
-}
 
 const BASE = '/api'
 
@@ -31,8 +26,9 @@ export class ApiError extends Error {
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    credentials: 'include', // セッション Cookie を送受信する
     ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
   if (!res.ok) {
     let message = `${res.status} ${res.statusText}`
@@ -51,6 +47,21 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // --- 認証 ---
+  requestOtp: (email: string) =>
+    http<{ ok: boolean }>('/auth/request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  verifyOtp: (email: string, code: string) =>
+    http<Member>('/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    }),
+  logout: () => http<void>('/auth/logout', { method: 'POST' }),
+  me: () => http<Member>('/auth/me'),
+
+  // --- 閲覧 (全員) ---
   listEvents: () => http<EventListItem[]>('/events'),
   getEvent: (id: string) => http<EventDetail>(`/events/${id}`),
   listMembers: () => http<Member[]>('/members'),
@@ -60,41 +71,19 @@ export const api = {
       body: JSON.stringify(input),
     }),
 
-  // --- admin 操作 (X-Admin-Token が必要) ---
+  // --- admin 操作 (Cookie のセッションで認可) ---
   // POST は定期開催で複数生成されうるため作成イベントの配列を返す
   createEvent: (input: CreateEventInput) =>
-    http<Event[]>('/events', {
-      method: 'POST',
-      body: JSON.stringify(input),
-      headers: adminHeaders(),
-    }),
+    http<Event[]>('/events', { method: 'POST', body: JSON.stringify(input) }),
   updateEvent: (id: string, input: UpdateEventInput) =>
-    http<Event>(`/events/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-      headers: adminHeaders(),
-    }),
+    http<Event>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   deleteEvent: (id: string) =>
-    http<void>(`/events/${id}`, {
-      method: 'DELETE',
-      headers: adminHeaders(),
-    }),
+    http<void>(`/events/${id}`, { method: 'DELETE' }),
 
   createMember: (input: CreateMemberInput) =>
-    http<Member>('/members', {
-      method: 'POST',
-      body: JSON.stringify(input),
-      headers: adminHeaders(),
-    }),
+    http<Member>('/members', { method: 'POST', body: JSON.stringify(input) }),
   updateMember: (id: string, input: UpdateMemberInput) =>
-    http<Member>(`/members/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-      headers: adminHeaders(),
-    }),
+    http<Member>(`/members/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   deleteMember: (id: string) =>
-    http<void>(`/members/${id}`, {
-      method: 'DELETE',
-      headers: adminHeaders(),
-    }),
+    http<void>(`/members/${id}`, { method: 'DELETE' }),
 }

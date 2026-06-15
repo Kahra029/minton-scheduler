@@ -24,6 +24,7 @@ interface MemberFormProps {
 
 export function MemberForm({ initial, submitLabel, onSubmit }: MemberFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
+  const [email, setEmail] = useState(initial?.email ?? '')
   const [role, setRole] = useState<MemberRole>(initial?.role ?? 'member')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +34,7 @@ export function MemberForm({ initial, submitLabel, onSubmit }: MemberFormProps) 
     setError(null)
     setSubmitting(true)
     try {
-      await onSubmit({ name, role })
+      await onSubmit({ name, role, email: email.trim() ? email : null })
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
     } finally {
@@ -51,6 +52,17 @@ export function MemberForm({ initial, submitLabel, onSubmit }: MemberFormProps) 
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="山田太郎"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="email">メールアドレス（ログイン用）</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
         />
       </div>
 

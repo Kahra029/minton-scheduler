@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { MemberForm } from '@/components/MemberForm'
-import { AdminGate } from '@/components/AdminGate'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
 
 export function NewMemberPage() {
@@ -16,7 +16,7 @@ export function NewMemberPage() {
         </Link>
       </Button>
       <h2 className="text-xl font-semibold">メンバー追加</h2>
-      <AdminGate>
+      <RequireAdmin>
         <MemberForm
           submitLabel="追加"
           onSubmit={async (input) => {
@@ -24,7 +24,7 @@ export function NewMemberPage() {
             navigate('/members')
           }}
         />
-      </AdminGate>
+      </RequireAdmin>
     </div>
   )
 }

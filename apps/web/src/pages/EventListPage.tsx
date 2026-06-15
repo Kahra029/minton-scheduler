@@ -5,12 +5,12 @@ import type { EventListItem } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
 import { EventCard } from '@/components/EventCard'
 import { Button } from '@/components/ui/button'
-import { useAdminToken } from '@/hooks/useAdminToken'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function EventListPage() {
   const [events, setEvents] = useState<EventListItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const token = useAdminToken()
+  const { isAdmin } = useAuth()
 
   useEffect(() => {
     api
@@ -23,7 +23,7 @@ export function EventListPage() {
 
   return (
     <div className="flex flex-col gap-3">
-      {token && (
+      {isAdmin && (
         <div className="flex justify-end">
           <Button asChild size="sm">
             <Link to="/events/new">

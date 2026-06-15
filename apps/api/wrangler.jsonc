@@ -11,6 +11,12 @@
       "migrations_dir": "migrations"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "OTP",
+      "id": "c446268620804383ac22c9b663f07508"
+    }
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1

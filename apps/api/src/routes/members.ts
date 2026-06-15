@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../bindings';
-import { adminAuth } from '../middleware/admin';
+import { requireAdmin } from '../middleware/auth';
 import { createMemberSchema, updateMemberSchema } from '../lib/validation';
 import {
   listMembers,
@@ -17,7 +17,7 @@ members.get('/', async (c) => {
 });
 
 // POST /api/members — admin
-members.post('/', adminAuth, async (c) => {
+members.post('/', requireAdmin, async (c) => {
   const parsed = createMemberSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) {
     return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
@@ -26,7 +26,7 @@ members.post('/', adminAuth, async (c) => {
 });
 
 // PUT /api/members/:id — admin
-members.put('/:id', adminAuth, async (c) => {
+members.put('/:id', requireAdmin, async (c) => {
   const parsed = updateMemberSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) {
     return c.json({ error: 'Validation failed', details: parsed.error.flatten() }, 400);
@@ -37,7 +37,7 @@ members.put('/:id', adminAuth, async (c) => {
 });
 
 // DELETE /api/members/:id — admin
-members.delete('/:id', adminAuth, async (c) => {
+members.delete('/:id', requireAdmin, async (c) => {
   const ok = await deleteMember(c.env.DB, c.req.param('id'));
   if (!ok) return c.json({ error: 'Member not found' }, 404);
   return c.body(null, 204);

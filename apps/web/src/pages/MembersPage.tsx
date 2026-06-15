@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Member } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
-import { AdminGate } from '@/components/AdminGate'
+import { RequireAdmin } from '@/components/RequireAdmin'
 import { RoleBadge } from '@/components/RoleBadge'
 import { Button } from '@/components/ui/button'
 
@@ -85,9 +85,9 @@ export function MembersPage() {
         </Link>
       </Button>
       <h2 className="text-xl font-semibold">メンバー管理</h2>
-      <AdminGate>
+      <RequireAdmin>
         <MembersList />
-      </AdminGate>
+      </RequireAdmin>
     </div>
   )
 }
