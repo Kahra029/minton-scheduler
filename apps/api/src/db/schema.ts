@@ -21,7 +21,7 @@ export const events = sqliteTable(
     end_time: text('end_time').notNull(),
     location: text('location').notNull(),
     note: text('note'),
-    status: text('status', { enum: ['draft', 'open', 'closed'] })
+    status: text('status', { enum: ['draft', 'open', 'full', 'closed'] })
       .notNull()
       .default('draft'),
     recurrence: text('recurrence'), // JSON 文字列

@@ -3,7 +3,7 @@ import { z } from 'zod';
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
 const TIME_RE = /^\d{2}:\d{2}$/; // HH:MM
 
-export const eventStatusSchema = z.enum(['draft', 'open', 'closed']);
+export const eventStatusSchema = z.enum(['draft', 'open', 'full', 'closed']);
 export const memberRoleSchema = z.enum(['admin', 'member']);
 export const attendanceStatusSchema = z.enum([
   'present',

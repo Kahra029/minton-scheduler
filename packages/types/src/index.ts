@@ -12,8 +12,14 @@ export * from './schemas';
 // 列挙的な値
 // ---------------------------------------------------------------------------
 
-/** イベントの公開ステータス */
-export type EventStatus = 'draft' | 'open' | 'closed';
+/**
+ * イベントの公開ステータス
+ * - draft:  下書き
+ * - open:   受付中
+ * - full:   募集締切 (admin が手動で締切)
+ * - closed: 終了
+ */
+export type EventStatus = 'draft' | 'open' | 'full' | 'closed';
 
 /** メンバーのロール */
 export type MemberRole = 'admin' | 'member';

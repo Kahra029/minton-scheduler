@@ -123,6 +123,10 @@ export function EventDetailPage() {
   const shown = ordered.slice(0, visible)
   const remaining = ordered.length - shown.length
 
+  // 締切/終了は一般メンバーの入力をロック (admin は調整可)
+  const locked =
+    !isAdmin && (detail.status === 'full' || detail.status === 'closed')
+
   return (
     <div className="flex flex-col gap-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
@@ -239,6 +243,11 @@ export function EventDetailPage() {
 
       {user ? (
         <>
+          {locked && (
+            <p className="rounded-lg border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+              このイベントの募集は締め切られています
+            </p>
+          )}
           <div>
             {shown.map((entry) => (
               <AttendanceRow
@@ -247,6 +256,7 @@ export function EventDetailPage() {
                 status={entry.status}
                 isSelf={user.id === entry.member_id}
                 disabled={
+                  locked ||
                   (upsert.isPending &&
                     upsert.variables?.member_id === entry.member_id) ||
                   !(isAdmin || user.id === entry.member_id)

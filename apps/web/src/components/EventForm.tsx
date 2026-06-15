@@ -20,6 +20,7 @@ import {
 const STATUS_OPTIONS: { value: EventStatus; label: string }[] = [
   { value: 'draft', label: '下書き' },
   { value: 'open', label: '受付中' },
+  { value: 'full', label: '締切' },
   { value: 'closed', label: '終了' },
 ]
 
