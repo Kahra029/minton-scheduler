@@ -1,7 +1,7 @@
 import type { Bindings } from '../bindings';
 
 // TODO(Phase 6): 送信ドメイン取得後に自ドメインのアドレスへ差し替える
-const FROM = 'BadSync <noreply@example.com>';
+const FROM = '信天翁 <noreply@example.com>';
 
 /**
  * OTP ログインコードをメール送信する。
@@ -12,9 +12,9 @@ export async function sendOtpEmail(
   email: string,
   code: string,
 ): Promise<void> {
-  const subject = 'BadSync ログインコード';
+  const subject = '信天翁 ログインコード';
   const body =
-    `BadSync のログインコード: ${code}\n\n` +
+    `信天翁 のログインコード: ${code}\n\n` +
     `このコードを10分以内に入力してください。\n` +
     `心当たりがない場合はこのメールを無視してください。`;
 

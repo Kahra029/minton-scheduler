@@ -8,31 +8,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { EventStatusBadge } from '@/components/EventStatusBadge'
 import { AttendanceSummaryBadges } from '@/components/AttendanceSummaryBadges'
 import { formatDate } from '@/lib/attendance'
 
 export function EventCard({ event }: { event: EventListItem }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{event.title}</CardTitle>
-        <CardAction>
-          <EventStatusBadge status={event.status} />
-        </CardAction>
-        <CardDescription>
-          {formatDate(event.date)} {event.start_time}–{event.end_time}
-          <span className="mx-1">・</span>
-          {event.location}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between gap-3">
-        <AttendanceSummaryBadges summary={event.summary} />
-        <Button asChild variant="outline" size="sm">
-          <Link to={`/events/${event.id}`}>出欠を見る</Link>
-        </Button>
-      </CardContent>
-    </Card>
+    <Link to={`/events/${event.id}`} className="block">
+      <Card className="transition-colors hover:border-foreground/20 hover:bg-accent/30">
+        <CardHeader>
+          <CardTitle className="text-base">{event.title}</CardTitle>
+          <CardAction>
+            <EventStatusBadge status={event.status} />
+          </CardAction>
+          <CardDescription>
+            {formatDate(event.date)} {event.start_time}–{event.end_time}
+            <span className="mx-1">・</span>
+            {event.location}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AttendanceSummaryBadges summary={event.summary} />
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

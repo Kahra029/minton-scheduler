@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, Pencil } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import type { AttendanceStatus, EventDetail } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
-import { STATUS_META, STATUS_ORDER, formatDate, summarizeEntries } from '@/lib/attendance'
+import {
+  STATUS_META,
+  STATUS_ORDER,
+  formatDate,
+  summarizeEntries,
+} from '@/lib/attendance'
 import { cn } from '@/lib/utils'
 import { AttendanceRow } from '@/components/AttendanceRow'
 import { EventStatusBadge } from '@/components/EventStatusBadge'
@@ -17,63 +24,68 @@ function applyStatus(
   detail: EventDetail,
   memberId: string,
   status: AttendanceStatus,
-  updatedAt: string
+  updatedAt: string,
 ): EventDetail {
   const attendance = detail.attendance.map((entry) =>
     entry.member_id === memberId
       ? { ...entry, status, updated_at: updatedAt }
-      : entry
+      : entry,
   )
   return { ...detail, attendance, summary: summarizeEntries(attendance) }
 }
 
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const [detail, setDetail] = useState<EventDetail | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [savingId, setSavingId] = useState<string | null>(null)
-  const [visible, setVisible] = useState(PAGE_SIZE)
   const { user, isAdmin } = useAuth()
+  const qc = useQueryClient()
+  const [visible, setVisible] = useState(PAGE_SIZE)
 
-  useEffect(() => {
-    if (!id) return
-    api
-      .getEvent(id)
-      .then(setDetail)
-      .catch((e: unknown) =>
-        setError(e instanceof ApiError ? e.message : '読み込みに失敗しました')
-      )
-  }, [id])
+  const {
+    data: detail,
+    isPending,
+    error,
+  } = useQuery({
+    queryKey: ['event', id],
+    queryFn: () => api.getEvent(id!),
+    enabled: !!id,
+  })
 
-  async function handleChange(memberId: string, status: AttendanceStatus) {
-    if (!detail) return
-    const prev = detail
-    // 楽観的更新: 先に画面へ反映してから保存する
-    setDetail(applyStatus(detail, memberId, status, new Date().toISOString()))
-    setSavingId(memberId)
-    setError(null)
-    try {
-      await api.upsertAttendance({
-        event_id: detail.id,
-        member_id: memberId,
-        status,
-      })
-    } catch (e: unknown) {
-      setDetail(prev) // 失敗したら元に戻す
-      setError(e instanceof ApiError ? e.message : '保存に失敗しました')
-    } finally {
-      setSavingId(null)
-    }
-  }
+  const upsert = useMutation({
+    mutationFn: (vars: { member_id: string; status: AttendanceStatus }) =>
+      api.upsertAttendance({ event_id: id!, ...vars }),
+    // 楽観的更新: 先にキャッシュを書き換え、失敗時に戻す
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ['event', id] })
+      const prev = qc.getQueryData<EventDetail>(['event', id])
+      if (prev) {
+        qc.setQueryData(
+          ['event', id],
+          applyStatus(prev, vars.member_id, vars.status, dayjs().toISOString()),
+        )
+      }
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['event', id], ctx.prev)
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['event', id] })
+      qc.invalidateQueries({ queryKey: ['events'] })
+    },
+  })
 
   if (error && !detail) {
-    return <p className="py-8 text-center text-destructive">{error}</p>
+    return (
+      <p className="py-8 text-center text-destructive">
+        {error instanceof ApiError ? error.message : '読み込みに失敗しました'}
+      </p>
+    )
   }
-  if (!detail) {
+  if (isPending || !detail) {
     return <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
   }
 
-  // 自分を先頭に、残りは role 昇順 → name 昇順 (admin / member 問わず)
+  // 自分を先頭に、残りは role 昇順 → name 昇順
   const others = detail.attendance
     .filter((e) => e.member_id !== user?.id)
     .sort((a, b) =>
@@ -132,7 +144,9 @@ export function EventDetailPage() {
                 STATUS_META[s].textClass,
               )}
             >
-              {s !== 'absent' && STATUS_META[s].label}
+              {s !== 'absent' && (
+                <span className="hidden sm:inline">{STATUS_META[s].label}</span>
+              )}
               {STATUS_META[s].symbol}
               {detail.summary[s]}
             </span>
@@ -140,7 +154,9 @@ export function EventDetailPage() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {upsert.isError && (
+        <p className="text-sm text-destructive">出欠の保存に失敗しました</p>
+      )}
 
       <div>
         {shown.map((entry) => (
@@ -150,10 +166,13 @@ export function EventDetailPage() {
             status={entry.status}
             isSelf={user?.id === entry.member_id}
             disabled={
-              savingId === entry.member_id ||
+              (upsert.isPending &&
+                upsert.variables?.member_id === entry.member_id) ||
               !(isAdmin || user?.id === entry.member_id)
             }
-            onChange={(status) => handleChange(entry.member_id, status)}
+            onChange={(status) =>
+              upsert.mutate({ member_id: entry.member_id, status })
+            }
           />
         ))}
         {detail.attendance.length === 0 && (

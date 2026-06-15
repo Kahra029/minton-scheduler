@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, Pencil, Plus, Trash2 } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Member } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
 import { RequireAdmin } from '@/components/RequireAdmin'
@@ -8,29 +8,15 @@ import { RoleBadge } from '@/components/RoleBadge'
 import { Button } from '@/components/ui/button'
 
 function MembersList() {
-  const [members, setMembers] = useState<Member[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  function reload() {
-    api
-      .listMembers()
-      .then(setMembers)
-      .catch((e: unknown) =>
-        setError(e instanceof ApiError ? e.message : '読み込みに失敗しました')
-      )
-  }
-
-  useEffect(reload, [])
-
-  async function handleDelete(member: Member) {
-    if (!confirm(`「${member.name}」を削除しますか？`)) return
-    try {
-      await api.deleteMember(member.id)
-      reload()
-    } catch (e: unknown) {
-      setError(e instanceof ApiError ? e.message : '削除に失敗しました')
-    }
-  }
+  const qc = useQueryClient()
+  const { data: members, isPending, error } = useQuery({
+    queryKey: ['members'],
+    queryFn: api.listMembers,
+  })
+  const del = useMutation({
+    mutationFn: (id: string) => api.deleteMember(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['members'] }),
+  })
 
   return (
     <div className="flex flex-col gap-3">
@@ -42,15 +28,24 @@ function MembersList() {
         </Button>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
+      {error && (
+        <p className="text-sm text-destructive">
+          {error instanceof ApiError ? error.message : '読み込みに失敗しました'}
+        </p>
+      )}
+      {del.isError && (
+        <p className="text-sm text-destructive">削除に失敗しました</p>
+      )}
+      {isPending && (
+        <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
+      )}
       {members?.length === 0 && (
         <p className="py-8 text-center text-muted-foreground">
           メンバーがまだいません
         </p>
       )}
 
-      {members?.map((member) => (
+      {members?.map((member: Member) => (
         <div
           key={member.id}
           className="flex items-center gap-3 rounded-lg border bg-card p-3"
@@ -66,7 +61,10 @@ function MembersList() {
             size="icon"
             variant="ghost"
             aria-label="削除"
-            onClick={() => handleDelete(member)}
+            onClick={() => {
+              if (confirm(`「${member.name}」を削除しますか？`))
+                del.mutate(member.id)
+            }}
           >
             <Trash2 />
           </Button>

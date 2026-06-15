@@ -1,41 +1,40 @@
-import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
-import type { Member } from '@minton/types'
-import { api, ApiError } from '@/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 import { MemberForm } from '@/components/MemberForm'
 import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
 
 function EditMemberBody({ id }: { id: string }) {
   const navigate = useNavigate()
-  const [member, setMember] = useState<Member | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const qc = useQueryClient()
+  // 単体取得 API は無いため一覧から該当メンバーを引く
+  const { data: members, isPending } = useQuery({
+    queryKey: ['members'],
+    queryFn: api.listMembers,
+  })
+  const member = members?.find((m) => m.id === id)
 
-  useEffect(() => {
-    // 単体取得 API は無いため一覧から該当メンバーを引く
-    api
-      .listMembers()
-      .then((members) => {
-        const found = members.find((m) => m.id === id)
-        if (found) setMember(found)
-        else setError('メンバーが見つかりません')
-      })
-      .catch((e: unknown) =>
-        setError(e instanceof ApiError ? e.message : '読み込みに失敗しました')
-      )
-  }, [id])
+  const update = useMutation({
+    mutationFn: (input: Parameters<typeof api.updateMember>[1]) =>
+      api.updateMember(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['members'] })
+      navigate('/members')
+    },
+  })
 
-  if (error) return <p className="text-sm text-destructive">{error}</p>
-  if (!member) return <p className="text-muted-foreground">読み込み中…</p>
+  if (isPending) return <p className="text-muted-foreground">読み込み中…</p>
+  if (!member)
+    return <p className="text-sm text-destructive">メンバーが見つかりません</p>
 
   return (
     <MemberForm
       initial={member}
       submitLabel="更新"
       onSubmit={async (input) => {
-        await api.updateMember(id, input)
-        navigate('/members')
+        await update.mutateAsync(input)
       }}
     />
   )

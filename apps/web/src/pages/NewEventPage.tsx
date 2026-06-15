@@ -1,5 +1,6 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { EventForm } from '@/components/EventForm'
 import { RequireAdmin } from '@/components/RequireAdmin'
@@ -7,6 +8,14 @@ import { Button } from '@/components/ui/button'
 
 export function NewEventPage() {
   const navigate = useNavigate()
+  const qc = useQueryClient()
+  const create = useMutation({
+    mutationFn: api.createEvent,
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: ['events'] })
+      navigate(created.length > 1 ? '/' : `/events/${created[0].id}`)
+    },
+  })
 
   return (
     <div className="flex flex-col gap-4">
@@ -21,12 +30,7 @@ export function NewEventPage() {
           mode="create"
           submitLabel="作成"
           onSubmit={async (input) => {
-            const created = await api.createEvent(input)
-            if (created.length > 1) {
-              navigate('/')
-            } else {
-              navigate(`/events/${created[0].id}`)
-            }
+            await create.mutateAsync(input)
           }}
         />
       </RequireAdmin>

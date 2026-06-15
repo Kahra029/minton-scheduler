@@ -1,10 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Member } from '@minton/types'
 import { api } from '@/lib/api'
 
@@ -20,30 +15,28 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Member | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    api
-      .me()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false))
-  }, [])
+  const qc = useQueryClient()
+  const { data, isLoading } = useQuery({
+    queryKey: ['me'],
+    // 未ログインは 401 になるため null に倒す
+    queryFn: () => api.me().catch(() => null),
+    staleTime: Infinity,
+  })
+  const user = data ?? null
 
   const value: AuthState = {
     user,
-    loading,
+    loading: isLoading,
     isAdmin: user?.role === 'admin',
     requestOtp: async (email) => {
       await api.requestOtp(email)
     },
     verifyOtp: async (email, code) => {
-      setUser(await api.verifyOtp(email, code))
+      qc.setQueryData(['me'], await api.verifyOtp(email, code))
     },
     logout: async () => {
       await api.logout()
-      setUser(null)
+      qc.clear()
     },
   }
 

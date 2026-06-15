@@ -1,5 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import type { CreateMemberInput, Member, MemberRole } from '@minton/types'
+import { memberRoleSchema } from '@minton/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,6 +19,16 @@ const ROLE_OPTIONS: { value: MemberRole; label: string }[] = [
   { value: 'admin', label: '幹事 (admin)' },
 ]
 
+const formSchema = z.object({
+  name: z.string().min(1, '名前は必須です'),
+  role: memberRoleSchema,
+  email: z.union([
+    z.literal(''),
+    z.string().email('メールアドレスの形式が不正です'),
+  ]),
+})
+type FormValues = z.infer<typeof formSchema>
+
 interface MemberFormProps {
   initial?: Member
   submitLabel: string
@@ -23,36 +36,39 @@ interface MemberFormProps {
 }
 
 export function MemberForm({ initial, submitLabel, onSubmit }: MemberFormProps) {
-  const [name, setName] = useState(initial?.name ?? '')
-  const [email, setEmail] = useState(initial?.email ?? '')
-  const [role, setRole] = useState<MemberRole>(initial?.role ?? 'member')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    control,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: initial?.name ?? '',
+      role: initial?.role ?? 'member',
+      email: initial?.email ?? '',
+    },
+  })
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setSubmitting(true)
+  const submit = handleSubmit(async (v) => {
     try {
-      await onSubmit({ name, role, email: email.trim() ? email : null })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました')
-    } finally {
-      setSubmitting(false)
+      await onSubmit({ name: v.name, role: v.role, email: v.email || null })
+    } catch (e) {
+      setError('root', {
+        message: e instanceof Error ? e.message : '保存に失敗しました',
+      })
     }
-  }
+  })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1">
         <Label htmlFor="name">名前</Label>
-        <Input
-          id="name"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="山田太郎"
-        />
+        <Input id="name" {...register('name')} placeholder="山田太郎" />
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
@@ -60,32 +76,42 @@ export function MemberForm({ initial, submitLabel, onSubmit }: MemberFormProps) 
         <Input
           id="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register('email')}
           placeholder="you@example.com"
         />
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
         <Label>ロール</Label>
-        <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ROLE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Controller
+          control={control}
+          name="role"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {errors.root && (
+        <p className="text-sm text-destructive">{errors.root.message}</p>
+      )}
 
-      <Button type="submit" className="w-full" disabled={submitting}>
-        {submitting ? '保存中…' : submitLabel}
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? '保存中…' : submitLabel}
       </Button>
     </form>
   )

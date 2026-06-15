@@ -20,9 +20,9 @@ function Header() {
       <div className="flex items-start justify-between">
         <div>
           <Link to="/" className="text-lg font-bold tracking-tight">
-            🏸 BadSync
+            信天翁
           </Link>
-          <p className="text-xs text-muted-foreground">バドミントン出欠管理</p>
+          <p className="text-xs text-muted-foreground">出欠管理</p>
         </div>
         <div className="flex items-center gap-1">
           {isAdmin && (
@@ -33,21 +33,16 @@ function Header() {
             </Button>
           )}
           {user ? (
-            <>
-              <span className="px-1 text-sm text-muted-foreground">
-                {user.name}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => {
-                  await logout()
-                  navigate('/')
-                }}
-              >
-                <LogOut /> ログアウト
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                await logout()
+                navigate('/')
+              }}
+            >
+              <LogOut /> ログアウト
+            </Button>
           ) : (
             <Button asChild variant="outline" size="sm">
               <Link to="/login">ログイン</Link>

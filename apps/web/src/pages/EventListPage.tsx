@@ -1,25 +1,18 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import type { EventListItem } from '@minton/types'
+import { useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api'
 import { EventCard } from '@/components/EventCard'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function EventListPage() {
-  const [events, setEvents] = useState<EventListItem[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const { isAdmin } = useAuth()
-
-  useEffect(() => {
-    api
-      .listEvents()
-      .then(setEvents)
-      .catch((e: unknown) =>
-        setError(e instanceof ApiError ? e.message : '読み込みに失敗しました')
-      )
-  }, [])
+  const {
+    data: events,
+    isPending,
+    error,
+  } = useQuery({ queryKey: ['events'], queryFn: api.listEvents })
 
   return (
     <div className="flex flex-col gap-3">
@@ -33,11 +26,15 @@ export function EventListPage() {
         </div>
       )}
 
-      {error && <p className="py-8 text-center text-destructive">{error}</p>}
-      {!error && !events && (
+      {error && (
+        <p className="py-8 text-center text-destructive">
+          {error instanceof ApiError ? error.message : '読み込みに失敗しました'}
+        </p>
+      )}
+      {isPending && (
         <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
       )}
-      {!error && events?.length === 0 && (
+      {events?.length === 0 && (
         <p className="py-8 text-center text-muted-foreground">
           イベントがまだありません
         </p>
