@@ -25,6 +25,13 @@ export const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   await next();
 });
 
+/** ログイン任意。Cookie があれば member をセットし、無くても通す */
+export const optionalAuth = createMiddleware<AppEnv>(async (c, next) => {
+  const payload = await authenticate(c);
+  if (payload) c.set('member', payload);
+  await next();
+});
+
 /** admin ロール必須。未ログインは 401、権限不足は 403 */
 export const requireAdmin = createMiddleware<AppEnv>(async (c, next) => {
   const payload = await authenticate(c);

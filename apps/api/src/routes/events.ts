@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { AppEnv } from '../bindings';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import type { AppEnv, AuthPayload } from '../bindings';
+import { requireAuth, requireAdmin, optionalAuth } from '../middleware/auth';
 import { createEventSchema, updateEventSchema } from '../lib/validation';
 import { Errors, parseJson } from '../lib/errors';
 import {
@@ -14,15 +14,17 @@ import { listAttendanceByEvent } from '../db/attendance';
 
 const events = new Hono<AppEnv>();
 
-// GET /api/events — 一覧 + 集計バッジ
-events.get('/', requireAuth, async (c) => {
+// GET /api/events — 一覧 + 集計バッジ (未ログインでも閲覧可。集計は人数のみ)
+events.get('/', optionalAuth, async (c) => {
   return c.json(await listEvents(c.env.DB));
 });
 
-// GET /api/events/:id — 詳細 + 出欠一覧
-events.get('/:id', requireAuth, async (c) => {
+// GET /api/events/:id — 詳細。未ログインは個人名 (出欠明細) を返さず集計のみ
+events.get('/:id', optionalAuth, async (c) => {
   const detail = await getEventDetail(c.env.DB, c.req.param('id'));
   if (!detail) throw Errors.notFound('イベントが見つかりません');
+  const member = c.get('member') as AuthPayload | undefined;
+  if (!member) return c.json({ ...detail, attendance: [] });
   return c.json(detail);
 });
 

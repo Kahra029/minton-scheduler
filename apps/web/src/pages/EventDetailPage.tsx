@@ -237,37 +237,50 @@ export function EventDetailPage() {
         <p className="text-sm text-destructive">出欠の保存に失敗しました</p>
       )}
 
-      <div>
-        {shown.map((entry) => (
-          <AttendanceRow
-            key={entry.member_id}
-            memberName={entry.member_name}
-            status={entry.status}
-            isSelf={user?.id === entry.member_id}
-            disabled={
-              (upsert.isPending &&
-                upsert.variables?.member_id === entry.member_id) ||
-              !(isAdmin || user?.id === entry.member_id)
-            }
-            onChange={(status) =>
-              upsert.mutate({ member_id: entry.member_id, status })
-            }
-          />
-        ))}
-        {detail.attendance.length === 0 && (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            メンバーが登録されていません
-          </p>
-        )}
-      </div>
+      {user ? (
+        <>
+          <div>
+            {shown.map((entry) => (
+              <AttendanceRow
+                key={entry.member_id}
+                memberName={entry.member_name}
+                status={entry.status}
+                isSelf={user.id === entry.member_id}
+                disabled={
+                  (upsert.isPending &&
+                    upsert.variables?.member_id === entry.member_id) ||
+                  !(isAdmin || user.id === entry.member_id)
+                }
+                onChange={(status) =>
+                  upsert.mutate({ member_id: entry.member_id, status })
+                }
+              />
+            ))}
+            {detail.attendance.length === 0 && (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                メンバーが登録されていません
+              </p>
+            )}
+          </div>
 
-      {remaining > 0 && (
-        <Button
-          variant="outline"
-          onClick={() => setVisible((v) => v + PAGE_SIZE)}
-        >
-          残り {remaining} 件を表示
-        </Button>
+          {remaining > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setVisible((v) => v + PAGE_SIZE)}
+            >
+              残り {remaining} 件を表示
+            </Button>
+          )}
+        </>
+      ) : (
+        <div className="rounded-lg border p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            ログインすると出欠の確認・入力ができます
+          </p>
+          <Button asChild size="sm" className="mt-3">
+            <Link to="/login">ログイン</Link>
+          </Button>
+        </div>
       )}
     </div>
   )

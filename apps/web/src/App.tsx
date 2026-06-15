@@ -110,23 +110,24 @@ function App() {
       <main className="flex-1 px-4 py-4">
         {loading ? (
           <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
-        ) : user ? (
+        ) : (
           <Routes>
+            {/* 公開: 一覧・詳細は未ログインでも閲覧可 (詳細の個人名は出さない) */}
             <Route path="/" element={<EventListPage />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/events/new" element={<NewEventPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route
+              path="/login"
+              element={user ? <Navigate to="/" replace /> : <LoginPage />}
+            />
+            {/* admin 機能。各ページ内の RequireAdmin が未ログイン/非adminを弾く */}
+            <Route path="/events/new" element={<NewEventPage />} />
             <Route path="/events/:id/edit" element={<EditEventPage />} />
             <Route path="/members" element={<MembersPage />} />
             <Route path="/members/new" element={<NewMemberPage />} />
             <Route path="/members/:id/edit" element={<EditMemberPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        ) : (
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
       </main>
