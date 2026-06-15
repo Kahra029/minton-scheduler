@@ -133,7 +133,11 @@ export function EventDetailPage() {
       {/* サマリ: 名前列ぶんの余白 + 4列グリッドで下のトグル各列に揃える */}
       <div className="flex items-center gap-3 rounded-lg border bg-card py-2 pr-2 pl-2">
         <div className="w-20 shrink-0 text-xs font-medium text-muted-foreground sm:w-28">
-          全{detail.attendance.length}名
+          出席
+          {detail.summary.present +
+            detail.summary.partial +
+            detail.summary.leave_early}
+          名
         </div>
         <div className="grid flex-1 grid-cols-4">
           {STATUS_ORDER.map((s) => (

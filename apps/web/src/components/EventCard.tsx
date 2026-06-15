@@ -11,11 +11,19 @@ import {
 import { EventStatusBadge } from '@/components/EventStatusBadge'
 import { AttendanceSummaryBadges } from '@/components/AttendanceSummaryBadges'
 import { formatDate } from '@/lib/attendance'
+import { cn } from '@/lib/utils'
 
 export function EventCard({ event }: { event: EventListItem }) {
   return (
     <Link to={`/events/${event.id}`} className="block">
-      <Card className="transition-colors hover:border-foreground/20 hover:bg-accent/30">
+      <Card
+        className={cn(
+          'transition-colors',
+          event.status === 'closed'
+            ? 'bg-muted/50 opacity-70'
+            : 'hover:border-foreground/20 hover:bg-accent/30',
+        )}
+      >
         <CardHeader>
           <CardTitle className="text-base">{event.title}</CardTitle>
           <CardAction>

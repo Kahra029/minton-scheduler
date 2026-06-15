@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import { api, ApiError } from '@/lib/api'
 import { EventCard } from '@/components/EventCard'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,13 @@ export function EventListPage() {
     isPending,
     error,
   } = useQuery({ queryKey: ['events'], queryFn: api.listEvents })
+
+  const today = dayjs().format('YYYY-MM-DD')
+  const byDateAsc = (a: { date: string }, b: { date: string }) =>
+    a.date.localeCompare(b.date)
+  // 本日以降を昇順、終了分 (本日より前) は下にまとめて昇順
+  const upcoming = (events ?? []).filter((e) => e.date >= today).sort(byDateAsc)
+  const past = (events ?? []).filter((e) => e.date < today).sort(byDateAsc)
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,9 +47,21 @@ export function EventListPage() {
           イベントがまだありません
         </p>
       )}
-      {events?.map((event) => (
+
+      {upcoming.map((event) => (
         <EventCard key={event.id} event={event} />
       ))}
+
+      {past.length > 0 && (
+        <>
+          <h3 className="mt-4 text-sm font-medium text-muted-foreground">
+            終了したイベント
+          </h3>
+          {past.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </>
+      )}
     </div>
   )
 }

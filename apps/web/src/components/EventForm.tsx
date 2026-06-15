@@ -19,7 +19,7 @@ import {
 const STATUS_OPTIONS: { value: EventStatus; label: string }[] = [
   { value: 'draft', label: '下書き' },
   { value: 'open', label: '受付中' },
-  { value: 'closed', label: '締切' },
+  { value: 'closed', label: '終了' },
 ]
 
 const RECURRENCE_OPTIONS: { value: Recurrence['type']; label: string }[] = [

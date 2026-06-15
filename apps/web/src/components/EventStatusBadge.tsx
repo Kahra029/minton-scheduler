@@ -7,7 +7,7 @@ const META: Record<
 > = {
   draft: { label: '下書き', variant: 'secondary' },
   open: { label: '受付中', variant: 'default' },
-  closed: { label: '締切', variant: 'outline' },
+  closed: { label: '終了', variant: 'outline' },
 }
 
 export function EventStatusBadge({ status }: { status: EventStatus }) {
