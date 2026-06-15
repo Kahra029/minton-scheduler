@@ -1,0 +1,18 @@
+{
+  "name": "minton-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BadSync — バドミントンサークル出欠管理アプリ (monorepo)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/api",
+    "deploy": "npm run deploy --workspace apps/api"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

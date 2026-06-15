@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-15",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "minton-scheduler",
+      "database_id": "2e03ab35-228f-4696-b94d-0cfcd20f3dad",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
