@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@minton/types": "*",
+    "dayjs": "^1.11.21",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.25",
     "ulid": "^2.3.0",

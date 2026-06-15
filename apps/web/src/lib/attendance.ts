@@ -1,8 +1,12 @@
+import dayjs from 'dayjs'
+import 'dayjs/locale/ja'
 import type {
   AttendanceStatus,
   AttendanceEntry,
   AttendanceSummary,
 } from '@minton/types'
+
+dayjs.locale('ja')
 
 /** 出欠ステータスの表示メタ情報 (記号・ラベル・配色) */
 export interface StatusMeta {
@@ -50,14 +54,9 @@ export const STATUS_ORDER: AttendanceStatus[] = [
   'absent',
 ]
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
-
 /** YYYY-MM-DD → "6/17 (水)" のような表示 */
 export function formatDate(date: string): string {
-  const [y, m, d] = date.split('-').map(Number)
-  if (!y || !m || !d) return date
-  const wd = WEEKDAYS[new Date(y, m - 1, d).getDay()]
-  return `${m}/${d} (${wd})`
+  return dayjs(date).format('M/D (dd)')
 }
 
 /** 出欠一覧から集計を再計算する (楽観的更新後の表示用。バック summarize と同ロジック) */
