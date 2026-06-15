@@ -77,9 +77,11 @@ function Header() {
                   <NavItem to="/settings" icon={<Coins />} label="料金設定" />
                 </>
               )}
+            </nav>
+            <div className="mt-auto border-t p-2">
               {user ? (
                 <button
-                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
                   onClick={async () => {
                     setOpen(false)
                     await logout()
@@ -91,7 +93,7 @@ function Header() {
               ) : (
                 <NavItem to="/login" icon={<LogIn />} label="ログイン" />
               )}
-            </nav>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
