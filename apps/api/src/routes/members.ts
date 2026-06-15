@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../bindings';
-import { requireAdmin } from '../middleware/auth';
+import { requireAuth, requireAdmin } from '../middleware/auth';
 import { createMemberSchema, updateMemberSchema } from '../lib/validation';
 import {
   listMembers,
@@ -12,7 +12,7 @@ import {
 const members = new Hono<AppEnv>();
 
 // GET /api/members — 全員
-members.get('/', async (c) => {
+members.get('/', requireAuth, async (c) => {
   return c.json(await listMembers(c.env.DB));
 });
 

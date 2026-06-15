@@ -1,4 +1,4 @@
-import { Link, Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { LogOut, Users } from 'lucide-react'
 import { EventListPage } from '@/pages/EventListPage'
 import { EventDetailPage } from '@/pages/EventDetailPage'
@@ -60,20 +60,31 @@ function Header() {
 }
 
 function App() {
+  const { user, loading } = useAuth()
+
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col">
       <Header />
       <main className="flex-1 px-4 py-4">
-        <Routes>
-          <Route path="/" element={<EventListPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/events/new" element={<NewEventPage />} />
-          <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/events/:id/edit" element={<EditEventPage />} />
-          <Route path="/members" element={<MembersPage />} />
-          <Route path="/members/new" element={<NewMemberPage />} />
-          <Route path="/members/:id/edit" element={<EditMemberPage />} />
-        </Routes>
+        {loading ? (
+          <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
+        ) : user ? (
+          <Routes>
+            <Route path="/" element={<EventListPage />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/events/new" element={<NewEventPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/events/:id/edit" element={<EditEventPage />} />
+            <Route path="/members" element={<MembersPage />} />
+            <Route path="/members/new" element={<NewMemberPage />} />
+            <Route path="/members/:id/edit" element={<EditMemberPage />} />
+          </Routes>
+        ) : (
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        )}
       </main>
     </div>
   )

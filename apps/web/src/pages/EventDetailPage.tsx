@@ -3,9 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, Pencil } from 'lucide-react'
 import type { AttendanceStatus, EventDetail } from '@minton/types'
 import { api, ApiError } from '@/lib/api'
-import { formatDate, summarizeEntries } from '@/lib/attendance'
+import { STATUS_META, STATUS_ORDER, formatDate, summarizeEntries } from '@/lib/attendance'
+import { cn } from '@/lib/utils'
 import { AttendanceRow } from '@/components/AttendanceRow'
-import { AttendanceSummaryBadges } from '@/components/AttendanceSummaryBadges'
 import { EventStatusBadge } from '@/components/EventStatusBadge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -73,8 +73,15 @@ export function EventDetailPage() {
     return <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
   }
 
-  const shown = detail.attendance.slice(0, visible)
-  const remaining = detail.attendance.length - shown.length
+  // 自分の行を先頭に並べる (admin / member 問わず)
+  const ordered = user
+    ? [
+        ...detail.attendance.filter((e) => e.member_id === user.id),
+        ...detail.attendance.filter((e) => e.member_id !== user.id),
+      ]
+    : detail.attendance
+  const shown = ordered.slice(0, visible)
+  const remaining = ordered.length - shown.length
 
   return (
     <div className="flex flex-col gap-4">
@@ -108,8 +115,25 @@ export function EventDetailPage() {
         )}
       </div>
 
-      <div className="rounded-lg border bg-card p-3">
-        <AttendanceSummaryBadges summary={detail.summary} />
+      {/* サマリ: 名前列ぶんの余白 + 4列グリッドで下のトグル各列に揃える */}
+      <div className="flex items-center gap-3 rounded-lg border bg-card py-2 pr-2 pl-2">
+        <div className="w-20 shrink-0 text-xs text-muted-foreground sm:w-28">
+          未定 {detail.summary.no_response}
+        </div>
+        <div className="grid flex-1 grid-cols-4">
+          {STATUS_ORDER.map((s) => (
+            <span
+              key={s}
+              className={cn(
+                'text-center text-sm font-semibold tabular-nums',
+                STATUS_META[s].textClass,
+              )}
+            >
+              {STATUS_META[s].symbol}
+              {detail.summary[s]}
+            </span>
+          ))}
+        </div>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -120,6 +144,7 @@ export function EventDetailPage() {
             key={entry.member_id}
             memberName={entry.member_name}
             status={entry.status}
+            isSelf={user?.id === entry.member_id}
             disabled={
               savingId === entry.member_id ||
               !(isAdmin || user?.id === entry.member_id)

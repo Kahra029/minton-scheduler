@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../bindings';
-import { requireAdmin } from '../middleware/auth';
+import { requireAuth, requireAdmin } from '../middleware/auth';
 import { createEventSchema, updateEventSchema } from '../lib/validation';
 import {
   listEvents,
@@ -14,19 +14,19 @@ import { listAttendanceByEvent } from '../db/attendance';
 const events = new Hono<AppEnv>();
 
 // GET /api/events — 一覧 + 集計バッジ
-events.get('/', async (c) => {
+events.get('/', requireAuth, async (c) => {
   return c.json(await listEvents(c.env.DB));
 });
 
 // GET /api/events/:id — 詳細 + 出欠一覧
-events.get('/:id', async (c) => {
+events.get('/:id', requireAuth, async (c) => {
   const detail = await getEventDetail(c.env.DB, c.req.param('id'));
   if (!detail) return c.json({ error: 'Event not found' }, 404);
   return c.json(detail);
 });
 
 // GET /api/events/:id/attendance — イベント別出欠一覧
-events.get('/:id/attendance', async (c) => {
+events.get('/:id/attendance', requireAuth, async (c) => {
   return c.json(await listAttendanceByEvent(c.env.DB, c.req.param('id')));
 });
 

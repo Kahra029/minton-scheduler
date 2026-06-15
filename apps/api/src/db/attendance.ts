@@ -1,3 +1,6 @@
+import { and, eq } from 'drizzle-orm';
+import { getDb } from './client';
+import { attendance, members } from './schema';
 import type {
   Attendance,
   AttendanceEntry,
@@ -10,23 +13,22 @@ import type {
  * 全メンバーを基準に LEFT JOIN し、未回答メンバーは status=null で返す。
  */
 export async function listAttendanceByEvent(
-  db: D1Database,
+  d1: D1Database,
   eventId: string,
 ): Promise<AttendanceEntry[]> {
-  const { results } = await db
-    .prepare(
-      `SELECT m.id   AS member_id,
-              m.name AS member_name,
-              a.status     AS status,
-              a.updated_at AS updated_at
-         FROM members m
-         LEFT JOIN attendance a
-           ON a.member_id = m.id AND a.event_id = ?
-        ORDER BY m.created_at ASC`,
+  return getDb(d1)
+    .select({
+      member_id: members.id,
+      member_name: members.name,
+      status: attendance.status,
+      updated_at: attendance.updated_at,
+    })
+    .from(members)
+    .leftJoin(
+      attendance,
+      and(eq(attendance.member_id, members.id), eq(attendance.event_id, eventId)),
     )
-    .bind(eventId)
-    .all<AttendanceEntry>();
-  return results;
+    .orderBy(members.created_at);
 }
 
 /** 出欠一覧からステータス別の集計を作る */
@@ -45,9 +47,9 @@ export function summarize(entries: AttendanceEntry[]): AttendanceSummary {
   return summary;
 }
 
-/** 出欠を upsert する (INSERT OR REPLACE) */
+/** 出欠を upsert する (主キー衝突時は更新) */
 export async function upsertAttendance(
-  db: D1Database,
+  d1: D1Database,
   input: UpsertAttendanceInput,
 ): Promise<Attendance> {
   const record: Attendance = {
@@ -56,14 +58,12 @@ export async function upsertAttendance(
     status: input.status,
     updated_at: new Date().toISOString(),
   };
-  await db
-    .prepare(
-      `INSERT INTO attendance (event_id, member_id, status, updated_at)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT (event_id, member_id)
-       DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at`,
-    )
-    .bind(record.event_id, record.member_id, record.status, record.updated_at)
-    .run();
+  await getDb(d1)
+    .insert(attendance)
+    .values(record)
+    .onConflictDoUpdate({
+      target: [attendance.event_id, attendance.member_id],
+      set: { status: record.status, updated_at: record.updated_at },
+    });
   return record;
 }

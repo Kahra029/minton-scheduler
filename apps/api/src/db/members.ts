@@ -1,38 +1,36 @@
+import { eq } from 'drizzle-orm';
 import { ulid } from '../lib/id';
+import { getDb } from './client';
+import { members } from './schema';
 import type { Member, CreateMemberInput, UpdateMemberInput } from '@minton/types';
-
-const COLS = 'id, name, role, email, created_at';
 
 function normEmail(email: string | null | undefined): string | null {
   return email ? email.toLowerCase() : null;
 }
 
-export async function listMembers(db: D1Database): Promise<Member[]> {
-  const { results } = await db
-    .prepare(`SELECT ${COLS} FROM members ORDER BY created_at ASC`)
-    .all<Member>();
-  return results;
+export async function listMembers(d1: D1Database): Promise<Member[]> {
+  return getDb(d1).select().from(members).orderBy(members.created_at);
 }
 
-export async function getMember(db: D1Database, id: string): Promise<Member | null> {
-  return db
-    .prepare(`SELECT ${COLS} FROM members WHERE id = ?`)
-    .bind(id)
-    .first<Member>();
+export async function getMember(d1: D1Database, id: string): Promise<Member | null> {
+  const rows = await getDb(d1).select().from(members).where(eq(members.id, id)).limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getMemberByEmail(
-  db: D1Database,
+  d1: D1Database,
   email: string,
 ): Promise<Member | null> {
-  return db
-    .prepare(`SELECT ${COLS} FROM members WHERE email = ?`)
-    .bind(email.toLowerCase())
-    .first<Member>();
+  const rows = await getDb(d1)
+    .select()
+    .from(members)
+    .where(eq(members.email, email.toLowerCase()))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function createMember(
-  db: D1Database,
+  d1: D1Database,
   input: CreateMemberInput,
 ): Promise<Member> {
   const member: Member = {
@@ -42,37 +40,28 @@ export async function createMember(
     email: normEmail(input.email),
     created_at: new Date().toISOString(),
   };
-  await db
-    .prepare(
-      'INSERT INTO members (id, name, role, email, created_at) VALUES (?, ?, ?, ?, ?)',
-    )
-    .bind(member.id, member.name, member.role, member.email, member.created_at)
-    .run();
+  await getDb(d1).insert(members).values(member);
   return member;
 }
 
 export async function updateMember(
-  db: D1Database,
+  d1: D1Database,
   id: string,
   input: UpdateMemberInput,
 ): Promise<Member | null> {
-  const current = await getMember(db, id);
+  const current = await getMember(d1, id);
   if (!current) return null;
 
-  const next: Member = {
-    ...current,
+  const next = {
     name: input.name ?? current.name,
     role: input.role ?? current.role,
     email: input.email !== undefined ? normEmail(input.email) : current.email,
   };
-  await db
-    .prepare('UPDATE members SET name = ?, role = ?, email = ? WHERE id = ?')
-    .bind(next.name, next.role, next.email, id)
-    .run();
-  return next;
+  await getDb(d1).update(members).set(next).where(eq(members.id, id));
+  return { ...current, ...next };
 }
 
-export async function deleteMember(db: D1Database, id: string): Promise<boolean> {
-  const result = await db.prepare('DELETE FROM members WHERE id = ?').bind(id).run();
-  return (result.meta.changes ?? 0) > 0;
+export async function deleteMember(d1: D1Database, id: string): Promise<boolean> {
+  const res = await getDb(d1).delete(members).where(eq(members.id, id));
+  return (res.meta.changes ?? 0) > 0;
 }

@@ -1,12 +1,15 @@
 import type { AttendanceStatus } from '@minton/types'
 import { cn } from '@/lib/utils'
 import { STATUS_META, STATUS_ORDER } from '@/lib/attendance'
+import { Badge } from '@/components/ui/badge'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 interface AttendanceRowProps {
   memberName: string
   status: AttendanceStatus | null
   disabled?: boolean
+  /** ログイン中の本人の行か */
+  isSelf?: boolean
   onChange: (status: AttendanceStatus) => void
 }
 
@@ -15,13 +18,24 @@ export function AttendanceRow({
   memberName,
   status,
   disabled,
+  isSelf,
   onChange,
 }: AttendanceRowProps) {
   return (
-    <div className="flex items-center gap-3 border-b py-2 last:border-b-0">
-      <span className="w-20 shrink-0 truncate text-sm font-medium sm:w-28">
-        {memberName}
-      </span>
+    <div
+      className={cn(
+        'flex items-center gap-3 py-2',
+        isSelf ? 'rounded-md bg-accent/40 px-2' : 'border-b last:border-b-0',
+      )}
+    >
+      <div className="w-20 shrink-0 sm:w-28">
+        <span className="block truncate text-sm font-medium">{memberName}</span>
+        {isSelf && (
+          <Badge variant="secondary" className="mt-0.5 px-1 py-0 text-[10px]">
+            あなた
+          </Badge>
+        )}
+      </div>
       <ToggleGroup
         type="single"
         variant="outline"
