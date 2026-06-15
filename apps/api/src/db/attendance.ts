@@ -20,6 +20,7 @@ export async function listAttendanceByEvent(
     .select({
       member_id: members.id,
       member_name: members.name,
+      member_role: members.role,
       status: attendance.status,
       updated_at: attendance.updated_at,
     })

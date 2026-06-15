@@ -73,13 +73,16 @@ export function EventDetailPage() {
     return <p className="py-8 text-center text-muted-foreground">読み込み中…</p>
   }
 
-  // 自分の行を先頭に並べる (admin / member 問わず)
-  const ordered = user
-    ? [
-        ...detail.attendance.filter((e) => e.member_id === user.id),
-        ...detail.attendance.filter((e) => e.member_id !== user.id),
-      ]
-    : detail.attendance
+  // 自分を先頭に、残りは role 昇順 → name 昇順 (admin / member 問わず)
+  const others = detail.attendance
+    .filter((e) => e.member_id !== user?.id)
+    .sort((a, b) =>
+      a.member_role !== b.member_role
+        ? a.member_role.localeCompare(b.member_role)
+        : a.member_name.localeCompare(b.member_name, 'ja'),
+    )
+  const self = detail.attendance.filter((e) => e.member_id === user?.id)
+  const ordered = [...self, ...others]
   const shown = ordered.slice(0, visible)
   const remaining = ordered.length - shown.length
 

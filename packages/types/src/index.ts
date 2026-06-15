@@ -93,6 +93,7 @@ export interface AttendanceSummary {
 export interface AttendanceEntry {
   member_id: string;
   member_name: string;
+  member_role: MemberRole;
   /** 未回答は null */
   status: AttendanceStatus | null;
   updated_at: string | null;
