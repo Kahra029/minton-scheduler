@@ -24,8 +24,8 @@ export function AttendanceRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 py-2',
-        isSelf ? 'rounded-md bg-accent/40 px-2' : 'border-b last:border-b-0',
+        'flex items-center gap-3 px-2 py-2',
+        isSelf ? 'rounded-md bg-accent/40' : 'border-b last:border-b-0',
       )}
     >
       <div className="w-20 shrink-0 sm:w-28">

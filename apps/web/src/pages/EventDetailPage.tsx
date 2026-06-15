@@ -117,18 +117,19 @@ export function EventDetailPage() {
 
       {/* サマリ: 名前列ぶんの余白 + 4列グリッドで下のトグル各列に揃える */}
       <div className="flex items-center gap-3 rounded-lg border bg-card py-2 pr-2 pl-2">
-        <div className="w-20 shrink-0 text-xs text-muted-foreground sm:w-28">
-          未定 {detail.summary.no_response}
+        <div className="w-20 shrink-0 text-xs font-medium text-muted-foreground sm:w-28">
+          全{detail.attendance.length}名
         </div>
         <div className="grid flex-1 grid-cols-4">
           {STATUS_ORDER.map((s) => (
             <span
               key={s}
               className={cn(
-                'text-center text-sm font-semibold tabular-nums',
+                'text-center text-xs font-semibold tabular-nums',
                 STATUS_META[s].textClass,
               )}
             >
+              {s !== 'absent' && STATUS_META[s].label}
               {STATUS_META[s].symbol}
               {detail.summary[s]}
             </span>
