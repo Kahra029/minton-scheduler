@@ -7,6 +7,8 @@ export {
   recurrenceSchema,
   createEventSchema,
   updateEventSchema,
+  createTemplateSchema,
+  updateTemplateSchema,
   createMemberSchema,
   updateMemberSchema,
   upsertAttendanceSchema,

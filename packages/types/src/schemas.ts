@@ -33,6 +33,18 @@ export const createEventSchema = z.object({
 
 export const updateEventSchema = createEventSchema.partial();
 
+// --- templates ------------------------------------------------------------
+
+export const createTemplateSchema = z.object({
+  name: z.string().min(1, 'テンプレート名は必須です'),
+  start_time: z.string().regex(TIME_RE, '開始時刻は HH:MM 形式で指定してください'),
+  end_time: z.string().regex(TIME_RE, '終了時刻は HH:MM 形式で指定してください'),
+  location: z.string().min(1, '場所は必須です'),
+  note: z.string().nullish(),
+});
+
+export const updateTemplateSchema = createTemplateSchema.partial();
+
 // --- members --------------------------------------------------------------
 
 export const createMemberSchema = z.object({

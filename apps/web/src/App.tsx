@@ -1,5 +1,5 @@
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
-import { Users } from 'lucide-react'
+import { CopyPlus, Users } from 'lucide-react'
 import { EventListPage } from '@/pages/EventListPage'
 import { EventDetailPage } from '@/pages/EventDetailPage'
 import { NewEventPage } from '@/pages/NewEventPage'
@@ -7,6 +7,7 @@ import { EditEventPage } from '@/pages/EditEventPage'
 import { MembersPage } from '@/pages/MembersPage'
 import { NewMemberPage } from '@/pages/NewMemberPage'
 import { EditMemberPage } from '@/pages/EditMemberPage'
+import { TemplatesPage } from '@/pages/TemplatesPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -25,11 +26,18 @@ function Header() {
         </div>
         <div className="flex items-center gap-1">
           {isAdmin && (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/members">
-                <Users /> メンバー
-              </Link>
-            </Button>
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/templates">
+                  <CopyPlus /> テンプレ
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/members">
+                  <Users /> メンバー
+                </Link>
+              </Button>
+            </>
           )}
           {!user && (
             <Button asChild variant="outline" size="sm">
@@ -61,6 +69,7 @@ function App() {
             <Route path="/members" element={<MembersPage />} />
             <Route path="/members/new" element={<NewMemberPage />} />
             <Route path="/members/:id/edit" element={<EditMemberPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
           </Routes>
         ) : (
           <Routes>

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { formatDate } from '@/lib/attendance'
 import { EventForm } from '@/components/EventForm'
 import { RequireAdmin } from '@/components/RequireAdmin'
 import { Button } from '@/components/ui/button'
@@ -22,14 +21,23 @@ export function NewEventPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [templateId, setTemplateId] = useState(NO_TEMPLATE)
-  const { data: events } = useQuery({
-    queryKey: ['events'],
-    queryFn: api.listEvents,
+  const { data: templates } = useQuery({
+    queryKey: ['templates'],
+    queryFn: api.listTemplates,
   })
   const template =
     templateId !== NO_TEMPLATE
-      ? events?.find((e) => e.id === templateId)
+      ? templates?.find((t) => t.id === templateId)
       : undefined
+  const initial = template
+    ? {
+        title: template.name,
+        start_time: template.start_time,
+        end_time: template.end_time,
+        location: template.location,
+        note: template.note,
+      }
+    : undefined
 
   const create = useMutation({
     mutationFn: api.createEvent,
@@ -48,7 +56,7 @@ export function NewEventPage() {
       </Button>
       <h2 className="text-xl font-semibold">イベント作成</h2>
       <RequireAdmin>
-        {events && events.length > 0 && (
+        {templates && templates.length > 0 && (
           <div className="space-y-1">
             <Label>テンプレートから作成（任意）</Label>
             <Select value={templateId} onValueChange={setTemplateId}>
@@ -57,23 +65,20 @@ export function NewEventPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_TEMPLATE}>テンプレートなし</SelectItem>
-                {events.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>
-                    {e.title}（{formatDate(e.date)}）
+                {templates.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}（{t.start_time}–{t.end_time} {t.location}）
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              選んだイベントの内容をコピーして新規作成します（日付は調整してください）
-            </p>
           </div>
         )}
-        {/* テンプレート切替時に初期値を反映するため key で再マウント */}
+        {/* テンプレ切替時に初期値を反映するため key で再マウント */}
         <EventForm
           key={templateId}
           mode="create"
-          initial={template}
+          initial={initial}
           submitLabel="作成"
           onSubmit={async (input) => {
             await create.mutateAsync(input)

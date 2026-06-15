@@ -134,6 +134,28 @@ export interface CreateEventInput {
 /** イベント更新 (PUT /api/events/:id)。指定したフィールドのみ更新 */
 export type UpdateEventInput = Partial<CreateEventInput>;
 
+/** イベント作成テンプレート（「木曜練習」など日付以外の雛形） */
+export interface EventTemplate {
+  id: string;
+  /** テンプレ名 = イベントタイトル雛形 */
+  name: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface CreateTemplateInput {
+  name: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  note?: string | null;
+}
+
+export type UpdateTemplateInput = Partial<CreateTemplateInput>;
+
 export interface CreateMemberInput {
   name: string;
   role?: MemberRole;

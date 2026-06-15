@@ -49,7 +49,8 @@ type FormValues = z.infer<typeof formSchema>
 
 interface EventFormProps {
   mode: 'create' | 'edit'
-  initial?: Event
+  // テンプレートからの部分プリフィルも受け付ける
+  initial?: Partial<Event>
   submitLabel: string
   onSubmit: (input: CreateEventInput) => Promise<void>
 }

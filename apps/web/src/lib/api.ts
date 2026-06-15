@@ -9,6 +9,9 @@ import type {
   CreateMemberInput,
   UpdateMemberInput,
   UpsertAttendanceInput,
+  EventTemplate,
+  CreateTemplateInput,
+  UpdateTemplateInput,
 } from '@minton/types'
 
 const BASE = '/api'
@@ -86,4 +89,18 @@ export const api = {
     http<Member>(`/members/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   deleteMember: (id: string) =>
     http<void>(`/members/${id}`, { method: 'DELETE' }),
+
+  listTemplates: () => http<EventTemplate[]>('/templates'),
+  createTemplate: (input: CreateTemplateInput) =>
+    http<EventTemplate>('/templates', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateTemplate: (id: string, input: UpdateTemplateInput) =>
+    http<EventTemplate>(`/templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+  deleteTemplate: (id: string) =>
+    http<void>(`/templates/${id}`, { method: 'DELETE' }),
 }
