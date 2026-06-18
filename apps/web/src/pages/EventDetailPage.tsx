@@ -178,64 +178,13 @@ export function EventDetailPage() {
                 STATUS_META[s].textClass,
               )}
             >
-              {s !== 'absent' && (
-                <span className="hidden sm:inline">{STATUS_META[s].label}</span>
-              )}
+              <span className="hidden sm:inline">{STATUS_META[s].label}</span>
               {STATUS_META[s].symbol}
               {detail.summary[s]}
             </span>
           ))}
         </div>
       </div>
-
-      {/* ビジター (メンバー外参加者)。admin は増減、member は閲覧 */}
-      {(isAdmin || detail.visitor_count > 0) && (
-        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
-          <span className="text-sm font-medium">ビジター</span>
-          {isAdmin ? (
-            <div className="flex items-center gap-3">
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label="減らす"
-                disabled={detail.visitor_count <= 0}
-                onClick={() => visitor.mutate(detail.visitor_count - 1)}
-              >
-                <Minus />
-              </Button>
-              <span className="w-6 text-center tabular-nums">
-                {detail.visitor_count}
-              </span>
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label="増やす"
-                onClick={() => visitor.mutate(detail.visitor_count + 1)}
-              >
-                <Plus />
-              </Button>
-            </div>
-          ) : (
-            <span className="text-sm tabular-nums">{detail.visitor_count}名</span>
-          )}
-        </div>
-      )}
-
-      {/* 集金合計 (admin のみ) */}
-      {isAdmin && fees && (
-        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-sm">
-          <span className="font-medium">集金合計</span>
-          <span className="font-semibold tabular-nums">
-            ¥
-            {(
-              detail.summary.present * fees.fee_present +
-              detail.summary.partial * fees.fee_partial +
-              detail.summary.leave_early * fees.fee_leave_early +
-              detail.visitor_count * fees.fee_visitor
-            ).toLocaleString()}
-          </span>
-        </div>
-      )}
 
       {upsert.isError && (
         <p className="text-sm text-destructive">出欠の保存に失敗しました</p>
@@ -290,6 +239,55 @@ export function EventDetailPage() {
           <Button asChild size="sm" className="mt-3">
             <Link to="/login">ログイン</Link>
           </Button>
+        </div>
+      )}
+
+      {/* ビジター (メンバー外参加者)。admin は増減、member は閲覧 */}
+      {(isAdmin || detail.visitor_count > 0) && (
+        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2">
+          <span className="text-sm font-medium">ビジター</span>
+          {isAdmin ? (
+            <div className="flex items-center gap-3">
+              <Button
+                size="icon"
+                variant="outline"
+                aria-label="減らす"
+                disabled={detail.visitor_count <= 0}
+                onClick={() => visitor.mutate(detail.visitor_count - 1)}
+              >
+                <Minus />
+              </Button>
+              <span className="w-6 text-center tabular-nums">
+                {detail.visitor_count}
+              </span>
+              <Button
+                size="icon"
+                variant="outline"
+                aria-label="増やす"
+                onClick={() => visitor.mutate(detail.visitor_count + 1)}
+              >
+                <Plus />
+              </Button>
+            </div>
+          ) : (
+            <span className="text-sm tabular-nums">{detail.visitor_count}名</span>
+          )}
+        </div>
+      )}
+
+      {/* 集金合計 (admin のみ) */}
+      {isAdmin && fees && (
+        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-sm">
+          <span className="font-medium">集金合計</span>
+          <span className="font-semibold tabular-nums">
+            ¥
+            {(
+              detail.summary.present * fees.fee_present +
+              detail.summary.partial * fees.fee_partial +
+              detail.summary.leave_early * fees.fee_leave_early +
+              detail.visitor_count * fees.fee_visitor
+            ).toLocaleString()}
+          </span>
         </div>
       )}
     </div>
